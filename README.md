@@ -9,6 +9,9 @@ Individual STEP files are created, in a user-selected folder, for each body
 with the filename matching the Label property of the body.
 (i.e. If the body is named "MyBody", the exported STEP file will be "MyBody.step")
 
+I decided to call it LastSTEP because it would likely be the the last step before publishing CAD
+files to an online model sharing service.
+
 IMPORTANT: Body names CANNOT contain a '/' because it is interpreted as part of the file path.
 Consider a different character in your body names (This is the 'Label' property of the object) 
 

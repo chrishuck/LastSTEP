@@ -9,7 +9,7 @@
 ## By Body Name: Matches the Label property of the body.
 ## (i.e. If the body is named "MyBody", the exported STEP file will be "MyBody.step")
 ##
-## Sequential Numbers: (i.e. "1.step", "2.step", etc...
+## Sequential Numbers: (i.e. "1.step", "2.step", etc...)
 ##
 ## IMPORTANT: Body names CANNOT contain a '/' because it is interpreted as part of the file path.
 ## Consider a different character in your body names (This is the 'Label' property of the object) 

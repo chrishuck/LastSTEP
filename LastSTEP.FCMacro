@@ -5,8 +5,11 @@
 ##
 ## This is a macro to batch export STEP files of bodies from any FreeCAD file.
 ## Individual STEP files are created, in a user-selected folder, for each body 
-## with the filename matching the Label property of the body.
+## with the filename based on a user-selected naming scheme:
+## By Body Name: Matches the Label property of the body.
 ## (i.e. If the body is named "MyBody", the exported STEP file will be "MyBody.step")
+##
+## Sequential Numbers: (i.e. "1.step", "2.step", etc...
 ##
 ## IMPORTANT: Body names CANNOT contain a '/' because it is interpreted as part of the file path.
 ## Consider a different character in your body names (This is the 'Label' property of the object) 

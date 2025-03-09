@@ -18,7 +18,7 @@
 __Name__ = 'LastSTEP'
 __Comment__ = 'Batch exports selected bodies to individual STEP files'
 __Author__ = 'Chris Huck'
-__Date__ = '2025.03.08'
+__Date__ = '2025.03.09'
 __Version__ = __Date__
 __License__ = 'GPL-3.0-or-later'
 __Web__ = 'https://github.com/chrishuck/LastSTEP/main/LastSTEP.FCMacro'
@@ -32,13 +32,10 @@ __Communication__ = 'https://github.com/chrishuck/LastSTEP/issues'
 __Files__ = 'LastSTEP.FCMacro'
 ##
 
-from PySide import QtGui
+from PySide import QtGui, QtCore
 
-# Get the selected bodies that have been pre-selected
-sel = Gui.Selection.getSelection()
-
-if sel == []:  # Checks for empty selection
-
+def no_selection_error():
+    
     # Displays an error dialog box if the user hasn't pre-selected any points
     error_dialog = QtGui.QMessageBox()
     error_dialog.setWindowTitle("LastSTEP") ## Ignored in MacOS
@@ -47,22 +44,81 @@ if sel == []:  # Checks for empty selection
     error_dialog.setInformativeText("You have not selected anything. Please select some bodies and try again.")
     error_button = error_dialog.exec_()
 
-else: # Proceeds with export if bodies are selected
+def file_naming_scheme():
 
-    # Opens a dialog box so the user can select the folder to export all of the STEP files into
-    folder = str(QtGui.QFileDialog.getExistingDirectory(None, "Select Directory"))
+    # Displays a dialog box to allow the user to select the desired file naming scheme
+    dialog = QtGui.QDialog()
+    dialog.setWindowTitle("File Naming Scheme") ## Ignored in MacOS
 
-    import ImportGui
+    # Create layout
+    layout = QtGui.QVBoxLayout()
 
-    options = None
-    if hasattr(ImportGui, "exportOptions"):
-        options = ImportGui.exportOptions(".step")
-    
-    # Loops through the selected bodies and exports them as a STEP file with a filename that is the same as
-    # the Label property of the body
-    for i in sel:
-        objs = []
-        objs.append(i)
-        file = folder+"/"+i.Label+".step" 
-        ImportGui.export(objs, file, options)
+    # Add label
+    label = QtGui.QLabel("Select your desired file naming scheme:")
+    layout.addWidget(label)
+
+    # Create buttons
+    by_body_name_button = QtGui.QPushButton("By Body Name")
+    sequential_numbers_button = QtGui.QPushButton("Sequential Numbers")
+
+    # Connect buttons to dialog accept with respective return values
+    by_body_name_button.clicked.connect(lambda: dialog.done(1))
+    sequential_numbers_button.clicked.connect(lambda: dialog.done(2))
+
+    # Add buttons to layout
+    layout.addWidget(by_body_name_button)
+    layout.addWidget(sequential_numbers_button)
+
+    # Set dialog layout
+    dialog.setLayout(layout)
+
+    # Execute dialog and return the result
+    result = dialog.exec_()
+    return result
+
+
+def main():
+
+    # Get the selected bodies that have been pre-selected
+    sel = Gui.Selection.getSelection()
+
+    if sel == []:  # Checks for empty selection
+
+        no_selection_error()
+
+    else: # Proceeds with export if bodies are selected
+
+        # Opens a dialog box so the user can select the folder to export all of the STEP files into
+        folder = str(QtGui.QFileDialog.getExistingDirectory(None, "Select Directory"))
+
+        if folder != "": # Checks if the user selected a folder
+
+            # Opens a dialog box to allow the user to select the desired file naming scheme
+            naming_scheme = file_naming_scheme()
+
+            import ImportGui
+
+            options = None
+            if hasattr(ImportGui, "exportOptions"):
+                options = ImportGui.exportOptions(".step")
+            
+            # Loops through the selected bodies and exports them as a STEP file with a filename based on
+            # the naming scheme selected by the user
+            count = 1
+            for i in sel:
+                objs = []
+                objs.append(i)
+                if naming_scheme == 1:
+                    file = folder+"/"+i.Label+".step"
+                elif naming_scheme == 2:
+                    file = folder+"/"+str(count)+".step"
+                    count += 1 
+                ImportGui.export(objs, file, options)
+
+if __name__ == '__main__':
+    main()
  
+
+
+
+

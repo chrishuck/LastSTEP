@@ -5,11 +5,11 @@
 ##
 ## This is a macro to batch export STEP files of bodies from any FreeCAD file.
 ## Individual STEP files are created, in a user-selected folder, for each body 
-## with the filename based on a user-selected naming scheme:
-## By Body Name: Matches the Label property of the body.
+## with the filename matching the Label property of the body.
 ## (i.e. If the body is named "MyBody", the exported STEP file will be "MyBody.step")
 ##
-## Sequential Numbers: (i.e. "1.step", "2.step", etc...)
+## If the user has the kiCadStepUp Workbench installed, the user can select the option to reset the
+## placement of the body(s) before exporting. This is useful for exporting bodies that are not at the origin.  
 ##
 ## IMPORTANT: Body names CANNOT contain a '/' because it is interpreted as part of the file path.
 ## Consider a different character in your body names (This is the 'Label' property of the object) 
@@ -21,7 +21,7 @@
 __Name__ = 'LastSTEP'
 __Comment__ = 'Batch exports selected bodies to individual STEP files'
 __Author__ = 'Chris Huck'
-__Date__ = '2025.03.09'
+__Date__ = '2025.03.31'
 __Version__ = __Date__
 __License__ = 'GPL-3.0-or-later'
 __Web__ = 'https://github.com/chrishuck/LastSTEP/main/LastSTEP.FCMacro'
@@ -34,6 +34,8 @@ __Requires__ = 'FreeCAD'
 __Communication__ = 'https://github.com/chrishuck/LastSTEP/issues'
 __Files__ = 'LastSTEP.FCMacro'
 ##
+
+import FreeCADGui
 
 from PySide import QtGui, QtCore
 
@@ -63,6 +65,7 @@ def file_naming_scheme():
     # Create buttons
     by_body_name_button = QtGui.QPushButton("By Body Name")
     sequential_numbers_button = QtGui.QPushButton("Sequential Numbers")
+    reset_origins_button = QtGui.QCheckBox("Reset Placement (Requires kicadStepUp WB)")
 
     # Connect buttons to dialog accept with respective return values
     by_body_name_button.clicked.connect(lambda: dialog.done(1))
@@ -71,14 +74,27 @@ def file_naming_scheme():
     # Add buttons to layout
     layout.addWidget(by_body_name_button)
     layout.addWidget(sequential_numbers_button)
+    layout.addWidget(reset_origins_button)
 
     # Set dialog layout
     dialog.setLayout(layout)
 
     # Execute dialog and return the result
     result = dialog.exec_()
-    return result
+    if reset_origins_button.isChecked():
+        reset_origins = True
+    else:
+        reset_origins = False
+    return result, reset_origins
 
+def reset_placement():
+    # This function resets the placement of the selected object
+    try:
+        import kicadStepUpCMD, kicadStepUptools
+        Gui.runCommand('ksuToolsResetPlacement', 0)
+    except ImportError:
+        print("kicadStepUpCMD module is not available.")
+        return 
 
 def main():
 
@@ -91,13 +107,19 @@ def main():
 
     else: # Proceeds with export if bodies are selected
 
+        # Put each selection object into an array
+        selected_objects = sel[:]
+
+        # Clear the selection
+        FreeCADGui.Selection.clearSelection()
+
         # Opens a dialog box so the user can select the folder to export all of the STEP files into
         folder = str(QtGui.QFileDialog.getExistingDirectory(None, "Select Directory"))
 
         if folder != "": # Checks if the user selected a folder
 
             # Opens a dialog box to allow the user to select the desired file naming scheme
-            naming_scheme = file_naming_scheme()
+            naming_scheme, reset_option = file_naming_scheme()
 
             import ImportGui
 
@@ -108,15 +130,28 @@ def main():
             # Loops through the selected bodies and exports them as a STEP file with a filename based on
             # the naming scheme selected by the user
             count = 1
-            for i in sel:
-                objs = []
-                objs.append(i)
+            
+            for obj in selected_objects:
+                # Set the value of sel to the current array item as the active selection
+                FreeCADGui.Selection.addSelection(obj)
+
                 if naming_scheme == 1:
-                    file = folder+"/"+i.Label+".step"
+                    if reset_option:
+                        reset_placement()                
+                    file = folder+"/"+obj.Label+".step"
+                    
                 elif naming_scheme == 2:
+                    if reset_option:
+                        reset_placement()  
                     file = folder+"/"+str(count)+".step"
-                    count += 1 
-                ImportGui.export(objs, file, options)
+                    count += 1
+                    
+                ImportGui.export(FreeCADGui.Selection.getSelection(), file, options)
+
+                # Clear the selection before iterating to the next array item
+                FreeCADGui.Selection.clearSelection()
+            
+            
 
 if __name__ == '__main__':
     main()

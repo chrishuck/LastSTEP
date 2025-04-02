@@ -2,6 +2,8 @@
 
 A FreeCAD macro to batch export multiple bodies to individual STEP files.
 
+[Release Notes](https://github.com/chrishuck/LastSTEP/blob/main/Release_Notes.md)
+
 ## Description:
 
 This is a macro to batch export STEP files of bodies from any FreeCAD file.
@@ -23,15 +25,20 @@ If no bodies are selected when the macro is run, an error dialog will appear.
 
 ## Installation:
 
-Place the LastSTEP.FCMacro in your chosen FreeCAD macros folder.
+Place the LastSTEP.FCMacro in your chosen FreeCAD macros folder. To use the ResetPlacement feature, the kicadStepUp workbench must also be installed.
 
 ## Usage
 
 1. Pre-select a body, or bodies, you would like to export.
 2. Run the macro.
 3. A dialog box will appear asking you to select the folder to export the files into. Make a selection.
-4. A dialog box will appear asking you to select the file naming scheme to use. Make a selection.
-5. The STEP files will be exported to the chosen folder with file names based on the chosen naming scheme.
+4. A dialog box will appear asking you to select the file naming scheme to use. 
+
+    a. If ResetPlacement of the body(s) is desired, click the checkbox prior to choosing a file naming scheme.
+
+    b. Choose a file naming scheme.
+
+5. The STEP files will be exported to the chosen folder with file names based on the chosen naming scheme. If ResetPlacement was chosen, the body origin will be set to the origin of the parent file in which it's contained.
 
 ## Credit
 
